@@ -1,4 +1,4 @@
-# AngularProject
+# Server List Project
 
 Ce projet a été généré par [Angular CLI](https://github.com/angular/angular-cli) version 16.2.0.
 
