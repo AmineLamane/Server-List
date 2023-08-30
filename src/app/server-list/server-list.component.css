@@ -1,0 +1,15 @@
+tr.detail-row {
+    height: 0;
+}
+tr.expanded-row {
+    background-color: #E0E0E0;
+}
+.element-row td {
+    border-bottom-width: 0;
+}
+.green {
+    background-color: #dafce6;
+}
+.bg-gray {
+    background-color: rgb(249 250 251);
+}

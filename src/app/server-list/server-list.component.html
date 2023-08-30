@@ -1,0 +1,142 @@
+<div class="px-20 pt-16">
+    <h1 class="text-center font-bold text-4xl mb-10">Liste des serveurs</h1>
+    <mat-form-field>
+      <mat-label>Filtre par serveur et site</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Serveur - 192.168.x.x" #input>
+        <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <table mat-table [dataSource]="dataSource" multiTemplateDataRows class="shadow-md">
+
+        <!--- Note that these columns can be defined in any order.
+              The actual rendered columns are set as a property on the row definition" -->
+      
+        <!-- Name Column -->
+        <form [formGroup]="serverform" [name]="serverform">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Nom </th>
+          <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+          <td mat-footer-cell *matFooterCellDef > 
+            <mat-form-field class="pt-3">
+              <mat-label>Nom de serveur</mat-label>
+              <input matInput placeholder="Serveur x" formControlName="name">
+              <mat-error *ngIf="serverform.get('name')?.hasError('required')">Ce champ est obligatoire</mat-error>
+            </mat-form-field>
+          </td>
+        </ng-container>
+      
+        <!-- IPAddress Column -->
+        <ng-container matColumnDef="ipAddress">
+          <th mat-header-cell *matHeaderCellDef > Adresse IP </th>
+          <td mat-cell *matCellDef="let element"> {{element.ipAddress}} </td>
+          <td mat-footer-cell *matFooterCellDef > 
+            <mat-form-field class="pt-3">
+              <mat-label>Adresse IP</mat-label>
+              <input matInput placeholder="192.168.0.1" formControlName="ipAddress">
+              <mat-error *ngIf="serverform.get('ipAddress')?.hasError('required')">Ce champ est obligatoire</mat-error>
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef > Actions </th>
+          <td mat-cell *matCellDef="let element"> 
+            <button matTooltip="Supprimer serveur" mat-icon-button color="warn" aria-label="Delete icon" (click)="deleteServer(element)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+          <td mat-footer-cell *matFooterCellDef>  </td>
+        </ng-container>
+
+        <ng-container matColumnDef="expand">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let element" >
+            <button mat-icon-button  (click)="expandServer(element)">
+              <mat-icon class="duration-300 rotate-180" [ngClass]="{'rotate-180' : isExpanded(element)}">keyboard_arrow_down</mat-icon>
+            </button>
+          </td>
+          <td mat-footer-cell *matFooterCellDef>
+            <div class="flex justify-center items-center">
+              <!-- Add a button for submission -->
+              <button mat-stroked-button [disabled]="!serverform.valid" color="primary" (click)="addServer()"><mat-icon>add_circle</mat-icon>Ajouter le Serveur</button>
+            </div>
+          </td>
+        </ng-container>
+      </form>
+        <!-- Add a row for displaying server sites -->
+        <ng-container matColumnDef="expandedDetail">
+            <td *matCellDef="let element" [attr.colspan]="displayedColumns.length" >
+              <div class="flex overflow-hidden" [@detailExpand]="isExpanded(element) ? 'expanded' : 'collapsed'">
+                <!-- Add a table to display server sites -->
+                <form [formGroup]="siteform" [name]="siteform" class="w-full">
+                <table class="w-full">
+                  <thead>
+                    <tr class="border-b">
+                        <th class="p-2">Nom du Site</th>
+                        <th class="p-2">Nom de domaine</th>
+                        <th class="p-2">Adresse IP du Site</th>
+                        <th class="p-2">Etat</th> 
+                        <th class="p-2">Actions</th> 
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let site of element.sites; let i = index" class="border-b" >
+                        <td class="text-center py-2">{{ site.name }}</td>
+                        <td class="text-center py-2">{{ site.domainName }}</td>
+                        <td class="text-center py-2">{{ site.ipAddress }}</td>
+                        <td class="text-center py-2">
+                          <mat-icon *ngIf="site.active" aria-hidden="false" class="text-green-600" aria-label="Actif Icon" fontIcon="check_circle"></mat-icon>
+                          <mat-icon *ngIf="!site.active" aria-hidden="false" class="text-red-600" aria-label="Inactif Icon" fontIcon="cancel"></mat-icon>
+                        </td>
+                        <td class="flex items-center justify-center space-x-2 py-2">
+                          <button *ngIf="!site.active" mat-stroked-button (click)="togglestatusSite(site)">Activer</button>
+                          <button *ngIf="site.active" mat-stroked-button color="warn" (click)="togglestatusSite(site)">Désactiver</button>
+                          <button matTooltip="Supprimer site" mat-icon-button color="warn" aria-label="Delete icon" (click)="deleteSite(i)">
+                            <mat-icon>delete</mat-icon>
+                          </button>
+                        </td>
+                    </tr>
+                    <tr class="border-b shadow-inner bg-gray-50">
+                        <td class="pt-3">
+                          <div class="flex justify-center items-center">
+                            <mat-form-field>
+                              <mat-label>Nom du site</mat-label>
+                              <input matInput placeholder="Name" formControlName="name">
+                              <mat-error *ngIf="siteform.get('name')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                            </mat-form-field>
+                          </div>
+                        </td>
+                        <td class="pt-3">
+                          <div class="flex justify-center items-center">
+                          <mat-form-field>
+                            <mat-label>Nom de domaine</mat-label>
+                            <input matInput placeholder="www.example.com" formControlName="domainName">
+                            <mat-error *ngIf="siteform.get('domainName')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                          </mat-form-field>
+                          </div>
+                        </td>
+                        <td class="text-center"> {{ element.ipAddress }}</td>
+                        <td>
+                          <div class="flex justify-center items-center">
+                            <mat-slide-toggle formControlName="active" color="primary"></mat-slide-toggle>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="flex justify-center items-center">
+                            <!-- Add a button for submission -->
+                            <button mat-stroked-button [disabled]="!siteform.valid" color="primary" (click)="addSite(element.ipAddress)"><mat-icon>add_circle</mat-icon>Ajouter Site</button>
+                          </div>
+                        </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </form>
+              </div>
+            </td>
+        </ng-container>
+        <!-- Cost Column -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="element-row" [class.expanded-row]="isExpanded(row)"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+        <tr mat-footer-row *matFooterRowDef="displayedColumns" class="border-t bg-gray"></tr>
+      </table>
+</div>

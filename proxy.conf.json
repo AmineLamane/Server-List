@@ -1,0 +1,8 @@
+{
+"/data-servers.json": {
+"target": "https://angular-test042023.s3.eu-west-3.amazonaws.com",
+"secure": false,
+"changeOrigin": true,
+"logLevel": "debug"
+}
+}
